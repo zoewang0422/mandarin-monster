@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Day 2 - 進化之戰 (按鍵音效版)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700;900&family=Bangers&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+/* --- 系統核心樣式 --- */
+:root { --color-bg: #121212; --color-neon-red: #FF003C; --color-neon-yellow: #FFE600; --color-neon-blue: #00F0FF; --color-neon-green: #39FF14; --color-neon-purple: #D300C5; }
+* { box-sizing: border-box; }
+body { margin: 0; background-color: var(--color-bg); font-family: 'Noto Sans TC', sans-serif; overflow: hidden; height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center; user-select: none; touch-action: none; }
+
+/* 投影片容器 */
+.slide-deck { width: 100vw; height: 100vh; position: relative; }
+.slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease-in-out; background: radial-gradient(circle, #2a2a2a 0%, #000000 100%); z-index: 0; visibility: hidden; }
+.slide.active { opacity: 1; pointer-events: auto; z-index: 10; visibility: visible; }
+
+/* 背景網格特效 */
+.slide::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222), linear-gradient(45deg, #222 25%, transparent 25%, transparent 75%, #222 75%, #222); background-size: 60px 60px; background-position: 0 0, 30px 30px; opacity: 0.1; z-index: -1; }
+
+/* 文字標題 */
+.monster-title { font-size: 8vw; line-height: 1; color: var(--color-neon-yellow); text-shadow: 4px 4px 0 #000, 8px 8px 0 var(--color-neon-red), 12px 12px 0 #000; transform: skew(-5deg) rotate(-2deg); margin-bottom: 2vh; text-transform: uppercase; }
+.monster-subtitle { font-size: 3vw; background: var(--color-neon-red); color: #fff; padding: 10px 40px; border: 4px solid #000; box-shadow: 8px 8px 0 #000; transform: skew(-10deg); display: inline-block; }
+.section-header { position: absolute; top: 5vh; left: 5vw; font-size: 4vw; color: #fff; border-left: 15px solid var(--color-neon-yellow); padding-left: 20px; text-shadow: 4px 4px 0 var(--color-neon-red); }
+.nav-hint { position: fixed; bottom: 20px; right: 20px; color: rgba(255,255,255,0.3); font-size: 14px; z-index: 100; pointer-events: none; }
+
+/* 選單卡片 */
+.grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; width: 70vw; }
+.game-card { background: #fff; border: 5px solid #000; padding: 30px; width: 100%; box-shadow: 15px 15px 0 var(--color-neon-red); transform: rotate(-2deg); text-align: center; position: relative; cursor: pointer; transition: transform 0.2s; }
+.game-card:hover { transform: scale(1.05) rotate(0deg); z-index: 20; }
+.game-card:nth-child(even) { transform: rotate(2deg); box-shadow: 15px 15px 0 var(--color-neon-yellow); }
+.icon-box { font-size: 4vw; margin-bottom: 10px; color: var(--color-neon-red); }
+.card-title { font-size: 2vw; background: #000; color: var(--color-neon-yellow); display: inline-block; padding: 5px 15px; transform: skew(-10deg); margin-bottom: 15px; }
+.card-desc { font-size: 1.2vw; font-weight: bold; color: #333; line-height: 1.4; }
+
+/* --- Game 1: 字靈重組 --- */
+.word-spirit-stage { position: relative; width: 90vw; height: 70vh; border: 2px dashed rgba(255,255,255,0.1); border-radius: 20px; background: rgba(255,255,255,0.02); }
+.component-piece {
+    position: absolute; font-size: 5vw; color: var(--color-neon-blue); background: rgba(0,0,0,0.9); border: 3px solid var(--color-neon-blue);
+    width: 8vw; height: 8vw; min-width: 80px; min-height: 80px; display: flex; justify-content: center; align-items: center;
+    box-shadow: 0 0 15px var(--color-neon-blue); border-radius: 12px; font-weight: 900; cursor: grab; z-index: 100; user-select: none; transition: transform 0.1s, box-shadow 0.2s;
+}
+.component-piece:active { cursor: grabbing; transform: scale(1.1); box-shadow: 0 0 30px var(--color-neon-blue); z-index: 101; }
+.answer-char {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.1);
+    font-size: 20vw; color: var(--color-neon-yellow); text-shadow: 0 0 50px var(--color-neon-yellow), 5px 5px 0 #000;
+    opacity: 0; pointer-events: none; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200;
+}
+.answer-char.reveal { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.level-badge { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: var(--color-neon-red); color: #fff; padding: 5px 20px; font-weight: bold; font-size: 1.5vw; border: 2px solid #fff; box-shadow: 5px 5px 0 #000; z-index: 50; }
+.instruction-text { position: absolute; bottom: 20px; width: 100%; text-align: center; color: rgba(255,255,255,0.5); font-size: 1.2rem; pointer-events: none; }
+.praise-text { font-size: 5vw; color: #fff; text-align: center; line-height: 1.5; }
+.praise-highlight { color: var(--color-neon-yellow); text-shadow: 0 0 20px var(--color-neon-yellow); display: block; font-size: 8vw; margin-top: 20px; }
+
+/* --- Game 2: 揪出叛徒 --- */
+#game-wrapper { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: rgba(0, 255, 0, 0.3); box-shadow: 0 0 10px #0f0; animation: scan 3s linear infinite; z-index: 5; pointer-events: none; }
+@keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+.hud { display: flex; justify-content: space-between; width: 100%; max-width: 600px; margin-bottom: 10px; font-size: 1.2rem; text-shadow: 0 0 5px #0f0; color: #fff; }
+.timer-bar-bg { width: 100%; max-width: 600px; height: 15px; background: #111; margin-bottom: 25px; border: 2px solid #0f0; }
+.timer-bar-fill { width: 100%; height: 100%; background: #0f0; box-shadow: 0 0 15px #0f0; transition: width 0.1s linear; }
+.grid { display: grid; gap: 8px; background: rgba(0, 20, 0, 0.6); padding: 15px; border: 2px solid #0f0; box-shadow: 0 0 20px rgba(0, 255, 0, 0.2); border-radius: 4px; aspect-ratio: 1 / 1; width: 100%; max-width: 500px; max-height: 55vh; }
+.char-box { display: flex; align-items: center; justify-content: center; background: #000; border: 1px solid #004400; color: #0f0; font-weight: 900; cursor: pointer; user-select: none; font-size: 2rem; }
+.char-box:hover { background: #002200; border-color: #0f0; }
+.shake { animation: shake 0.4s both; color: #f00 !important; border-color: #f00 !important; }
+@keyframes shake { 0%, 100% {transform:translateX(0);} 25% {transform:translateX(-5px);} 75% {transform:translateX(5px);} }
+#game-over { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 20; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+.btn-restart { padding: 15px 50px; font-size: 1.5rem; background: #0f0; color: #000; border: none; font-weight: 900; cursor: pointer; box-shadow: 0 0 25px rgba(0,255,0,0.6); margin-top: 30px; clip-path: polygon(15% 0, 100% 0, 100% 70%, 85% 100%, 0 100%, 0 30%); }
+.demo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 30px 0; }
+.demo-cell { width: 60px; height: 60px; border: 2px solid #0f0; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; color: #0f0; background: #001100; }
+.demo-traitor { border-color: #f00; color: #f00; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0.5; } }
+
+/* --- Game 3: 輪盤 --- */
+.roulette-wrapper { position: relative; width: 500px; height: 500px; margin-bottom: 20px; }
+.roulette-wheel { 
+    width: 100%; height: 100%; 
+    border-radius: 50%; 
+    border: 10px solid var(--color-neon-blue); 
+    box-shadow: 0 0 30px var(--color-neon-blue); 
+    transition: transform 4s cubic-bezier(0.1, 0.9, 0.2, 1); 
+    position: relative; 
+    overflow: hidden; 
+}
+.roulette-label { 
+    position: absolute; 
+    top: 50%; left: 50%; 
+    width: 50%; height: 40px; 
+    margin-top: -20px; /* 垂直置中修正 */
+    transform-origin: 0% 50%; /* 以中心點為旋轉軸 */
+    text-align: right; 
+    padding-right: 50px; /* 避免文字貼邊 */
+    color: #fff; font-size: 2.5rem; font-weight: 900; 
+    text-shadow: 0 0 5px var(--color-neon-blue); 
+    display: flex; align-items: center; justify-content: flex-end;
+}
+.roulette-pointer { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid var(--color-neon-red); z-index: 10; filter: drop-shadow(0 0 5px var(--color-neon-red)); }
+.btn-spin { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border-radius: 50%; background: var(--color-neon-red); color: #fff; border: 4px solid #fff; font-size: 1.5rem; font-weight: 900; cursor: pointer; box-shadow: 0 0 20px var(--color-neon-red); z-index: 5; }
+.btn-spin:active { transform: translate(-50%, -50%) scale(0.95); }
+.result-box { margin-top: 20px; font-size: 4vw; color: var(--color-neon-yellow); text-shadow: 0 0 20px var(--color-neon-yellow); height: 1.2em; }
+.timer-display { font-size: 3vw; color: #fff; margin-top: 10px; font-family: monospace; }
+
+/* --- Game 4: 字謎怪獸 --- */
+.riddle-card { width: 80vw; max-width: 1000px; background: #111; border: 4px solid var(--color-neon-purple); padding: 60px 40px; text-align: center; position: relative; box-shadow: 0 0 30px var(--color-neon-purple); transform: rotate(1deg); }
+.riddle-question { font-size: 4vw; color: #fff; margin-bottom: 50px; line-height: 1.4; text-shadow: 2px 2px 0 #000; }
+.riddle-answer { font-size: 8vw; color: var(--color-neon-yellow); font-weight: 900; opacity: 0; transform: scale(0.5); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-shadow: 0 0 50px var(--color-neon-yellow); }
+.riddle-answer.reveal { opacity: 1; transform: scale(1); }
+.reveal-btn-hint { margin-top: 30px; color: #666; font-size: 1.2rem; }
+
+/* --- BONUS Slide --- */
+.bonus-box { width: 70vw; background: #000; border: 5px solid var(--color-neon-green); padding: 40px; text-align: center; color: #fff; position: relative; box-shadow: 0 0 40px var(--color-neon-green); }
+.bonus-icon { font-size: 8vw; color: var(--color-neon-green); margin-bottom: 20px; }
+.bonus-rule { font-size: 2vw; line-height: 1.8; margin-top: 20px; text-align: left; display: inline-block; }
+    </style>
+</head>
+<body>
+<div class="nav-hint">鍵盤 ← → 換頁 | 拖曳部件組字 | 空白鍵揭曉答案 | 🔊 按鍵音效已啟用</div>
+
+<div class="slide-deck">
+    <!-- Slide 0: 封面 -->
+    <div class="slide active">
+        <div class="monster-subtitle">CHINESE MONSTER LEAGUE</div>
+        <h1 class="monster-title">DAY 2<br>進化之戰</h1>
+        <div style="position: absolute; bottom: 10vh; right: 10vw; background: var(--color-neon-red); color: #fff; padding: 20px 40px; font-size: 2vw; font-weight: 900; transform: rotate(-5deg); border: 5px solid #000;">殘酷選秀開始</div>
+    </div>
+
+    <!-- Slide 1: 選秀規則 -->
+    <div class="slide">
+        <h2 class="section-header">S型選秀規則</h2>
+        <div style="width: 80vw; background: #fff; border: 5px solid #000; padding: 40px; transform: rotate(-2deg); text-align:center;">
+            <h3 style="font-size: 3vw; margin-bottom: 20px;">SNAKE DRAFT</h3>
+            <div style="font-size: 4vw; font-weight: 900; margin: 20px 0;">1 → 2 → 3 → 4</div>
+            <div style="font-size: 4vw; font-weight: 900; color: var(--color-neon-red);">1 ← 2 ← 3 ← 4</div>
+        </div>
+    </div>
+
+    <!-- Slide 2: 戰術指令 -->
+    <div class="slide">
+        <h2 class="section-header">戰術指令</h2>
+        <div style="width: 80vw; background: #000; border: 5px solid var(--color-neon-blue); padding: 50px; transform: rotate(1deg); box-shadow: 0 0 30px var(--color-neon-blue); text-align: left; color: #fff;">
+            <h3 style="font-size: 3vw; margin-bottom: 30px; color: var(--color-neon-yellow); text-align: center;">隊長權限解鎖</h3>
+            <div style="font-size: 2.5vw; line-height: 1.8;">
+                <i class="fa-solid fa-crown" style="color: var(--color-neon-yellow);"></i> 隊長可指派隊員出戰 (含自己)<br>
+                <i class="fa-solid fa-ban" style="color: var(--color-neon-red);"></i> 每一關出戰人員 <span style="color: var(--color-neon-red); text-shadow: 0 0 10px red; font-size: 3vw;">不可重複</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: 選單 -->
+    <div class="slide">
+        <h2 class="section-header">本日挑戰項目</h2>
+        <div class="grid-2x2" style="margin-top: 10vh;">
+            <div class="game-card" onclick="jumpToSlide(4)">
+                <div class="icon-box"><i class="fa-solid fa-puzzle-piece"></i></div>
+                <div class="card-title">字靈重組</div>
+                <div class="card-desc">漢字拆解與重組<br><u>點擊開始</u></div>
+            </div>
+            <div class="game-card" onclick="jumpToSlide(16)"> 
+                <div class="icon-box"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div class="card-title">揪出叛徒</div>
+                <div class="card-desc">茫茫字海找錯字<br><u>點擊開始</u></div>
+            </div>
+            <div class="game-card" onclick="jumpToSlide(20)"> 
+                <div class="icon-box"><i class="fa-solid fa-wind"></i></div>
+                <div class="card-title">部首大風吹</div>
+                <div class="card-desc">限時接力寫字<br><u>點擊開始</u></div>
+            </div>
+            <div class="game-card" onclick="jumpToSlide(23)"> <!-- 跳到 G4 規則 (原22，因新增G3 encourage+1) -->
+                <div class="icon-box"><i class="fa-solid fa-question"></i></div>
+                <div class="card-title">字謎怪獸</div>
+                <div class="card-desc">投影謎題搶答<br><u>點擊開始</u></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= GAME 1: 字靈重組 (Slide 4-15) ================= -->
+    <div class="slide"><h2 class="section-header">GAME 1: 字靈重組</h2><div style="text-align: center; margin-top: 5vh;"><h1 style="color: var(--color-neon-blue); font-size: 4vw;">字靈重組競速賽</h1><div style="font-size: 2.5vw; color: #fff; margin-top: 40px; line-height: 1.6; text-align: left; display: inline-block;">1. 各組派員至 <span style="color: var(--color-neon-red);">起跑線</span> 準備<br>2. 題目出現後，全速 <span style="color: var(--color-neon-yellow);">衝刺按鈴</span><br>3. 搶得先機者，上台 <span style="color: var(--color-neon-blue);">修復文字</span></div></div></div>
+    
+    <div class="slide game1-slide" data-ans="明"><div class="word-spirit-stage"><div class="level-badge">DEMO</div><div class="component-piece" style="left: 70%; top: 60%;">日</div><div class="component-piece" style="left: 20%; top: 20%;">月</div><div class="answer-char">明</div><div class="instruction-text">試著將「日」和「月」拖在一起，再按空白鍵揭曉</div></div></div>
+    <div class="slide game1-slide" data-ans="秋"><div class="word-spirit-stage"><div class="level-badge">LEVEL 1</div><div class="component-piece" style="left: 80%; top: 20%;">禾</div><div class="component-piece" style="left: 15%; top: 60%;">火</div><div class="answer-char">秋</div></div></div>
+    <div class="slide game1-slide" data-ans="意"><div class="word-spirit-stage"><div class="level-badge">LEVEL 2</div><div class="component-piece" style="left: 10%; top: 20%;">立</div><div class="component-piece" style="left: 80%; top: 15%;">日</div><div class="component-piece" style="left: 45%; top: 75%;">心</div><div class="answer-char">意</div></div></div>
+    <div class="slide game1-slide" data-ans="解"><div class="word-spirit-stage"><div class="level-badge">LEVEL 3</div><div class="component-piece" style="left: 15%; top: 30%;">角</div><div class="component-piece" style="left: 75%; top: 20%;">刀</div><div class="component-piece" style="left: 50%; top: 75%;">牛</div><div class="answer-char">解</div></div></div>
+    <div class="slide game1-slide" data-ans="腳"><div class="word-spirit-stage"><div class="level-badge">LEVEL 4</div><div class="component-piece" style="left: 10%; top: 60%;">月</div><div class="component-piece" style="left: 85%; top: 15%;">卩</div><div class="component-piece" style="left: 50%; top: 10%;">去</div><div class="answer-char">腳</div></div></div>
+    <div class="slide game1-slide" data-ans="謝"><div class="word-spirit-stage"><div class="level-badge">LEVEL 5</div><div class="component-piece" style="left: 10%; top: 60%;">身</div><div class="component-piece" style="left: 85%; top: 65%;">寸</div><div class="component-piece" style="left: 50%; top: 20%;">言</div><div class="answer-char">謝</div></div></div>
+    <div class="slide game1-slide" data-ans="寶"><div class="word-spirit-stage"><div class="level-badge">LEVEL 6</div><div class="component-piece" style="left: 15%; top: 15%;">宀</div><div class="component-piece" style="left: 80%; top: 20%;">王</div><div class="component-piece" style="left: 20%; top: 75%;">缶</div><div class="component-piece" style="left: 75%; top: 75%;">貝</div><div class="answer-char">寶</div></div></div>
+    <div class="slide game1-slide" data-ans="讀"><div class="word-spirit-stage"><div class="level-badge">LEVEL 7</div><div class="component-piece" style="left: 10%; top: 50%;">言</div><div class="component-piece" style="left: 50%; top: 15%;">士</div><div class="component-piece" style="left: 80%; top: 40%;">四</div><div class="component-piece" style="left: 50%; top: 75%;">貝</div><div class="answer-char">讀</div></div></div>
+    <div class="slide game1-slide" data-ans="警"><div class="word-spirit-stage"><div class="level-badge">LEVEL 8</div><div class="component-piece" style="left: 20%; top: 20%;">艹</div><div class="component-piece" style="left: 70%; top: 20%;">句</div><div class="component-piece" style="left: 20%; top: 70%;">攵</div><div class="component-piece" style="left: 70%; top: 70%;">言</div><div class="answer-char">警</div></div></div>
+    <div class="slide game1-slide" data-ans="贏"><div class="word-spirit-stage"><div class="level-badge">FINAL BOSS</div><div class="component-piece" style="left: 10%; top: 10%;">亡</div><div class="component-piece" style="left: 80%; top: 80%;">月</div><div class="component-piece" style="left: 20%; top: 80%;">貝</div><div class="component-piece" style="left: 50%; top: 50%;">口</div><div class="component-piece" style="left: 80%; top: 10%;">凡</div><div class="answer-char">贏</div></div></div>
+    
+    <div class="slide"><div class="praise-text">你們的觀察力與組合能力<br>令人驚嘆！<span class="praise-highlight">文字修復成功！</span></div></div>
+
+    <!-- ================= GAME 2: 揪出叛徒 (Slide 16-19) ================= -->
+    <div class="slide"><h2 class="section-header">GAME 2: 揪出叛徒</h2><div style="width: 70vw; text-align: center; color: #fff; font-size: 2.5vw; line-height: 1.5; background: rgba(0,0,0,0.8); border: 2px solid var(--color-neon-red); padding: 40px;"><i class="fa-solid fa-user-secret" style="font-size: 6vw; margin-bottom: 20px; color: var(--color-neon-red);"></i><p>在這一些字當中有一個叛徒，</p><p>你能找出誰是<span style="color: var(--color-neon-red); font-weight: 900;">真正的叛徒</span>嗎？</p></div></div>
+    <div class="slide"><h2 class="section-header">範例：找出叛徒</h2><div style="display: flex; flex-direction: column; align-items: center; color: #fff;"><div style="font-size: 2vw; margin-bottom: 20px;">在一群「大」裡面，藏著一個...</div><div class="demo-grid"><div class="demo-cell">大</div><div class="demo-cell">大</div><div class="demo-cell">大</div><div class="demo-cell">大</div><div class="demo-cell demo-traitor">太</div><div class="demo-cell">大</div><div class="demo-cell">大</div><div class="demo-cell">大</div><div class="demo-cell">大</div></div><div style="font-size: 2vw; color: var(--color-neon-yellow);">叛徒就是「太」！</div><div style="margin-top: 30px; font-size: 1.5vw; color: #888;">準備好開始了嗎？按下一頁進入遊戲</div></div></div>
+    
+    <div class="slide" id="slide-game2"><div id="game-wrapper"><div class="scan-line"></div><div style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:600px;"><div class="mission-title" style="margin: 0 0 20px 0; color: #fff; background: #f00; padding: 5px 20px; transform: skew(-10deg); font-size: 1.5rem;">MISSION: FIND THE TRAITOR</div><div class="hud"><div>LEVEL <span id="level-display" style="color:#fff">1</span></div><div>SCORE <span id="score-display" style="color:#fff">0</span></div></div><div class="timer-bar-bg"><div class="timer-bar-fill" id="timer-bar"></div></div><div class="grid" id="grid"></div></div><div id="game-over"><div style="font-size: 3.5rem; color: #f00; text-shadow: 4px 4px #fff; margin-bottom: 10px; font-weight: 900; transform: skew(-5deg);">SYSTEM FAILURE</div><div style="color: #0f0; font-size: 1.5rem; margin-bottom: 40px;">FINAL SCORE: <span id="final-score" style="color:#fff; font-weight:bold;">0</span></div><button class="btn-restart" onclick="Game2.start()">REBOOT SYSTEM</button></div></div></div>
+    
+    <div class="slide"><div class="praise-text">銳利的眼神，敏捷的反應！<span class="praise-highlight" style="color: var(--color-neon-red); text-shadow: 0 0 20px var(--color-neon-red);">鷹眼獵人，任務達成！</span></div></div>
+
+    <!-- ================= GAME 3: 部首大風吹 (Slide 20-22) ================= -->
+    <div class="slide"><h2 class="section-header">GAME 3: 部首大風吹</h2><div style="text-align: center; margin-top: 5vh;"><h1 style="color: var(--color-neon-blue); font-size: 4vw;">元素風暴來襲！</h1><div style="font-size: 2.5vw; color: #fff; margin-top: 40px; line-height: 1.6; text-align: left; display: inline-block;">1. 命運輪盤決定 <span style="color: var(--color-neon-yellow);">戰場屬性</span>（部首）<br>2. 限時 60 秒，在白板召喚 <span style="color: var(--color-neon-blue);">同屬性怪獸</span><br>3. 時間到立刻 <span style="color: var(--color-neon-red);">停止召喚</span><br><span style="font-size: 1.5rem; color: #888;">(例如：水屬性 -> 江、河、湖、海...)</span></div></div></div>
+    <div class="slide" id="slide-game3"><h2 class="section-header">命運輪盤</h2><div class="roulette-wrapper"><div class="roulette-pointer"></div><div class="roulette-wheel" id="wheel"></div><button class="btn-spin" onclick="Game3.spin()">啟動</button></div><div class="result-box" id="roulette-result">準備抽取屬性...</div><div class="timer-display" id="game3-timer">60.00</div></div>
+    
+    <!-- 新增 Game 3 鼓勵頁 -->
+    <div class="slide"><div class="praise-text">太強了！<br>白板已經被你們的創意填滿<span class="praise-highlight" style="color: var(--color-neon-blue); text-shadow: 0 0 20px var(--color-neon-blue);">元素大師，實至名歸！</span></div></div>
+
+    <!-- ================= GAME 4: 字謎怪獸 (Slide 23-33) ================= -->
+    
+    <!-- Slide 23: Game 4 規則 -->
+    <div class="slide">
+        <h2 class="section-header">GAME 4: 字謎怪獸</h2>
+        <div style="text-align: center; margin-top: 5vh;">
+            <h1 style="color: var(--color-neon-purple); font-size: 4vw;">字謎搶答戰</h1>
+            <div style="font-size: 2.5vw; color: #fff; margin-top: 40px; line-height: 1.6; text-align: left; display: inline-block;">
+                1. 謎題投影，小組討論<br>
+                2. 答案寫在 <span style="color: var(--color-neon-yellow);">黑板</span> 上<br>
+                3. 每組派 <span style="color: var(--color-neon-blue);">一人代表</span> 回答
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 24: Demo (告) -->
+    <div class="slide riddle-slide" data-ans="告">
+        <div class="level-badge">DEMO</div>
+        <div class="riddle-card">
+            <div class="riddle-question">一口咬掉牛尾巴</div>
+            <div class="riddle-answer">告</div>
+            <div class="reveal-btn-hint">(按下空白鍵揭曉)</div>
+        </div>
+    </div>
+
+    <!-- Slide 25: Q1 (胖) -->
+    <div class="slide riddle-slide" data-ans="胖">
+        <div class="level-badge">LEVEL 1</div>
+        <div class="riddle-card">
+            <div class="riddle-question">十五天<br>(猜一字)</div>
+            <div class="riddle-answer">胖</div>
+        </div>
+    </div>
+
+    <!-- Slide 26: Q2 (坐) -->
+    <div class="slide riddle-slide" data-ans="坐">
+        <div class="level-badge">LEVEL 2</div>
+        <div class="riddle-card">
+            <div class="riddle-question">兩個小孩<br>坐在土堆上</div>
+            <div class="riddle-answer">坐</div>
+        </div>
+    </div>
+
+    <!-- Slide 27: Q3 (閃) -->
+    <div class="slide riddle-slide" data-ans="閃">
+        <div class="level-badge">LEVEL 3</div>
+        <div class="riddle-card">
+            <div class="riddle-question">門裡躲著一個人</div>
+            <div class="riddle-answer">閃</div>
+        </div>
+    </div>
+
+    <!-- Slide 28: Q4 (府) -->
+    <div class="slide riddle-slide" data-ans="府">
+        <div class="level-badge">LEVEL 4</div>
+        <div class="riddle-card">
+            <div class="riddle-question">一點一橫長，一撇到南洋<br>南洋有個人，只有一寸長</div>
+            <div class="riddle-answer">府</div>
+        </div>
+    </div>
+
+    <!-- Slide 29: Q5 (林) -->
+    <div class="slide riddle-slide" data-ans="林">
+        <div class="level-badge">LEVEL 5</div>
+        <div class="riddle-card">
+            <div class="riddle-question">左邊十八<br>右邊十八</div>
+            <div class="riddle-answer">林</div>
+        </div>
+    </div>
+
+    <!-- Slide 30: Q6 (明) -->
+    <div class="slide riddle-slide" data-ans="明">
+        <div class="level-badge">LEVEL 6</div>
+        <div class="riddle-card">
+            <div class="riddle-question">太陽西邊下<br>月亮東邊掛</div>
+            <div class="riddle-answer">明</div>
+        </div>
+    </div>
+
+    <!-- Slide 31: Q7 (拿) -->
+    <div class="slide riddle-slide" data-ans="拿">
+        <div class="level-badge">LEVEL 7</div>
+        <div class="riddle-card">
+            <div class="riddle-question">一人一張口<br>口下長隻手</div>
+            <div class="riddle-answer">拿</div>
+        </div>
+    </div>
+
+    <!-- Slide 32: Q8 (碧) -->
+    <div class="slide riddle-slide" data-ans="碧">
+        <div class="level-badge">FINAL BOSS</div>
+        <div class="riddle-card">
+            <div class="riddle-question">王先生和白小姐<br>一起坐在石頭上</div>
+            <div class="riddle-answer">碧</div>
+        </div>
+    </div>
+
+    <!-- Slide 33: Game 4 鼓勵語 -->
+    <div class="slide">
+        <div class="praise-text">
+            謎題全數破解！<br>
+            <span class="praise-highlight" style="color: var(--color-neon-purple); text-shadow: 0 0 20px var(--color-neon-purple);">智慧之光閃耀全場！</span>
+        </div>
+    </div>
+
+    <!-- Slide 34: BONUS 投票 -->
+    <div class="slide">
+        <h2 class="section-header">BONUS!</h2>
+        <div class="bonus-box">
+            <i class="fa-solid fa-box-archive bonus-icon"></i>
+            <h3 style="font-size: 3vw; color: var(--color-neon-green); margin-bottom: 20px;">秘密投票時間</h3>
+            <div class="bonus-rule">
+                1. 寫下今天組內 <span style="color: var(--color-neon-yellow);">貢獻最多</span> 的人 (可選自己)<br>
+                2. 前提：必須 <span style="color: var(--color-neon-red);">寫對名字</span><br>
+                3. 寫完將紙 <span style="color: #fff; border-bottom: 2px solid #fff;">折起來</span><br>
+                4. 秘密投入投票箱
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 35: End -->
+    <div class="slide">
+        <h1 class="monster-title" style="font-size: 10vw;">TO BE<br>CONTINUED</h1>
+    </div>
+</div>
+
+<script>
+    // --- Slide System ---
+    let currentSlide = 0; 
+    const slides = document.querySelectorAll('.slide'); 
+    let isLocked = false;
+    let game1Revealed = false; 
+    let game4Revealed = false; // 字謎揭曉狀態
+
+    // --- 音效系統 (Web Audio API) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // 通用按鍵點擊音效
+    function playClickSound() {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.15);
+
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+    }
+
+    // 輪盤/轉動音效 (類似骰子聲)
+    function playRouletteTick() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400 + Math.random() * 200, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    // 輪盤停止音效 (登登！)
+    function playRouletteStop() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        
+        // 第一聲
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(400, now);
+        gain1.gain.setValueAtTime(0.2, now);
+        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start();
+        osc1.stop(now + 0.3);
+
+        // 第二聲
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(600, now + 0.1);
+        gain2.gain.setValueAtTime(0.2, now + 0.1);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.1);
+        osc2.stop(now + 0.4);
+    }
+
+    // 全域點擊監聽 (音效)
+    document.addEventListener('click', (e) => {
+        // 檢查是否為可互動元素
+        if (e.target.closest('.game-card') || 
+            e.target.closest('.play-btn') || 
+            e.target.closest('.component-piece') || 
+            e.target.closest('.char-box') || 
+            e.target.closest('.btn-spin') || 
+            e.target.closest('.btn-restart') ||
+            e.target.tagName === 'A') {
+            playClickSound();
+        }
+    });
+
+    function showSlide(index) { 
+        if (index < 0) index = 0; 
+        if (index >= slides.length) index = slides.length - 1; 
+        
+        // 離開舊 Slide 時清理
+        if (slides[currentSlide].id === 'slide-game2') Game2.stop();
+
+        slides.forEach(s => s.classList.remove('active')); 
+        slides[index].classList.add('active'); 
+        currentSlide = index;
+        
+        // 重置揭曉狀態
+        game1Revealed = false;
+        game4Revealed = false;
+        
+        // 重置字謎卡樣式 (如果往回翻)
+        const riddleAns = slides[index].querySelector('.riddle-answer');
+        if(riddleAns) riddleAns.classList.remove('reveal');
+
+        // 進入 Game 2 開始
+        if (slides[index].id === 'slide-game2') Game2.start();
+        // 進入 Game 3 初始化
+        if (slides[index].id === 'slide-game3') Game3.init();
+    }
+
+    function jumpToSlide(index) { showSlide(index); }
+
+    document.addEventListener('keydown', (e) => { 
+        if (isLocked || e.repeat) return; 
+        
+        // Game 2 進行中防誤觸
+        if (slides[currentSlide].id === 'slide-game2' && Game2.isPlaying) {
+            if (e.key === 'Escape') showSlide(currentSlide + 1);
+            return;
+        }
+
+        // 播放鍵盤音效
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'Enter') {
+            playClickSound();
+        }
+
+        // Space: 揭曉答案 (Game 1 & Game 4)
+        if (e.key === ' ') {
+            const slide = slides[currentSlide];
+            // Game 1 揭曉
+            if (slide.classList.contains('game1-slide')) {
+                if (!game1Revealed) revealAnswerG1();
+                else showSlide(currentSlide + 1);
+                return;
+            }
+            // Game 4 揭曉
+            if (slide.classList.contains('riddle-slide')) {
+                if (!game4Revealed) revealAnswerG4();
+                else showSlide(currentSlide + 1);
+                return;
+            }
+        }
+
+        if (e.key === 'ArrowRight' || e.key === 'Enter') showSlide(currentSlide + 1);
+        else if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+    });
+
+    // --- Game 1 Logic ---
+    let draggedItem = null;
+    let offsetX = 0; let offsetY = 0;
+    document.querySelectorAll('.component-piece').forEach(item => {
+        item.addEventListener('mousedown', startDrag);
+        item.addEventListener('touchstart', startDrag, {passive: false});
+    });
+    function startDrag(e) {
+        e.preventDefault(); if (game1Revealed) return;
+        playClickSound(); // 拖曳開始音效
+        draggedItem = this;
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        const rect = draggedItem.getBoundingClientRect();
+        offsetX = cx - rect.left; offsetY = cy - rect.top;
+        document.addEventListener('mousemove', onDrag); document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchmove', onDrag, {passive: false}); document.addEventListener('touchend', stopDrag);
+    }
+    function onDrag(e) {
+        if (!draggedItem) return;
+        e.preventDefault();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        const containerRect = draggedItem.parentElement.getBoundingClientRect();
+        draggedItem.style.left = (cx - containerRect.left - offsetX) + 'px';
+        draggedItem.style.top = (cy - containerRect.top - offsetY) + 'px';
+    }
+    function stopDrag() {
+        draggedItem = null;
+        document.removeEventListener('mousemove', onDrag); document.removeEventListener('mouseup', stopDrag);
+        document.removeEventListener('touchmove', onDrag); document.removeEventListener('touchend', stopDrag);
+    }
+    function revealAnswerG1() {
+        const slide = slides[currentSlide];
+        slide.querySelectorAll('.component-piece').forEach(p => {
+            p.style.transition = 'all 0.5s ease-in';
+            p.style.left = '50%'; p.style.top = '50%';
+            p.style.transform = 'translate(-50%, -50%) scale(0.1)'; p.style.opacity = '0';
+        });
+        setTimeout(() => slide.querySelector('.answer-char').classList.add('reveal'), 300);
+        game1Revealed = true;
+    }
+
+    // --- Game 2 Logic ---
+    const Game2 = {
+        pairs: [ ['大','太'], ['士','土'], ['未','末'], ['候','侯'], ['貝','見'], ['白','自'], ['免','兔'], ['瓜','爪'], ['茶','荼'], ['口','回'], ['戊','戌'], ['人','入'], ['牛','午'], ['右','石'], ['帥','師'], ['崇','祟'], ['天','夫'], ['酒','洒'], ['網','綱'], ['春','舂'] ],
+        level: 1, score: 0, timeLeft: 15, maxTime: 15, timerId: null, isPlaying: false,
+        start() { this.level=1; this.score=0; this.timeLeft=15; this.isPlaying=true; document.getElementById('game-over').style.display='none'; this.updateHUD(); this.nextLevel(); this.startTimer(); },
+        stop() { this.isPlaying=false; clearInterval(this.timerId); },
+        startTimer() { clearInterval(this.timerId); this.timerId=setInterval(()=>{ if(!this.isPlaying)return; this.timeLeft-=0.05; let pct=(this.timeLeft/this.maxTime)*100; let bar=document.getElementById('timer-bar'); bar.style.width=Math.max(0,pct)+'%'; bar.style.background=pct<30?'#f00':'#0f0'; if(this.timeLeft<=0)this.gameOver(); },50); },
+        nextLevel() { let size=this.level>10?6:(this.level>5?5:(this.level>2?4:3)); let pair=this.pairs[Math.floor(Math.random()*this.pairs.length)]; this.renderGrid(size,pair[0],pair[1]); this.timeLeft=Math.min(this.maxTime,this.timeLeft+2); },
+        renderGrid(size, normal, traitor) { let grid=document.getElementById('grid'); grid.innerHTML=''; grid.style.gridTemplateColumns=`repeat(${size},1fr)`; let total=size*size, tIdx=Math.floor(Math.random()*total); for(let i=0;i<total;i++){ let div=document.createElement('div'); div.className='char-box'; div.innerText=(i===tIdx)?traitor:normal; div.onmousedown=(e)=>{e.stopPropagation();i===tIdx?this.correct():this.wrong(div);}; grid.appendChild(div); } },
+        correct() { if(!this.isPlaying)return; this.score+=10+this.level*2; this.level++; this.updateHUD(); document.getElementById('grid').style.background='#0f0'; setTimeout(()=>{document.getElementById('grid').style.background='rgba(0,20,0,0.6)'; this.nextLevel();},80); },
+        wrong(el) { if(!this.isPlaying)return; this.timeLeft-=3; el.classList.add('shake'); el.style.borderColor='#f00'; el.style.color='#f00'; setTimeout(()=>{el.classList.remove('shake'); el.style.borderColor='#004400'; el.style.color='#0f0';},400); },
+        updateHUD() { document.getElementById('score-display').innerText=this.score; document.getElementById('level-display').innerText=this.level; },
+        gameOver() { this.stop(); document.getElementById('final-score').innerText=this.score; document.getElementById('game-over').style.display='flex'; }
+    };
+
+    // --- Game 3 Logic ---
+    const Game3 = {
+        radicals: ['口', '水', '火', '土', '手', '肉', '日', '金', '木'],
+        isSpinning: false, rotation: 0, timerId: null, soundTimer: null,
+        init() {
+            const wheel = document.getElementById('wheel'); wheel.innerHTML = '';
+            let gradientStr = 'conic-gradient('; const sliceAngle = 360/this.radicals.length;
+            this.radicals.forEach((r, i) => {
+                const startDeg = i * sliceAngle; const endDeg = (i + 1) * sliceAngle;
+                const color = i % 2 === 0 ? '#111' : '#222';
+                gradientStr += `${color} ${startDeg}deg ${endDeg}deg${i===this.radicals.length-1?'':', '}`;
+                const label = document.createElement('div'); label.className = 'roulette-label'; label.innerText = r;
+                label.style.transform = `rotate(${startDeg + (sliceAngle/2)}deg)`; wheel.appendChild(label);
+            });
+            wheel.style.background = gradientStr + ')'; this.isSpinning = false;
+        },
+        spin() {
+            if (this.isSpinning) return; this.isSpinning = true; document.getElementById('roulette-result').innerText = '命運轉動中...';
+            
+            // 播放轉動音效
+            this.soundTimer = setInterval(playRouletteTick, 100);
+
+            const extraSpins = 1800; const randomDegree = Math.floor(Math.random() * 360); this.rotation += extraSpins + randomDegree;
+            document.getElementById('wheel').style.transform = `rotate(-${this.rotation}deg)`;
+            setTimeout(() => { 
+                clearInterval(this.soundTimer); // 停止音效
+                playRouletteStop(); // 播放停止音效
+                this.showResult(this.rotation % 360); 
+            }, 4000);
+        },
+        showResult(finalAngle) {
+            const sliceAngle = 360 / this.radicals.length; const normalizedAngle = finalAngle % 360;
+            const winningIndex = Math.floor(normalizedAngle / sliceAngle); const winner = this.radicals[winningIndex];
+            document.getElementById('roulette-result').innerText = `屬性確認：【 ${winner} 】`; this.startTimer(); this.isSpinning = false;
+        },
+        startTimer() {
+            let timeLeft = 60; const display = document.getElementById('game3-timer'); if(this.timerId) clearInterval(this.timerId);
+            this.timerId = setInterval(() => { timeLeft -= 0.05; display.innerText = timeLeft.toFixed(2); if (timeLeft <= 0) { clearInterval(this.timerId); display.innerText = "0.00 - 時間到！停止召喚！"; display.style.color = "#f00"; } }, 50);
+        }
+    };
+
+    // --- Game 4 Logic: Reveal Answer ---
+    function revealAnswerG4() {
+        const slide = slides[currentSlide];
+        const ans = slide.querySelector('.riddle-answer');
+        ans.classList.add('reveal');
+        game4Revealed = true;
+    }
+
+    showSlide(0);
+</script>
+</body>
+</html>
