@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Day 1 - 覺醒之戰 (按鍵音效版)</title>
+    <title>Day 1 - 覺醒之戰 (含選單版)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700;900&family=Bangers&family=Rubik+Glitch&display=swap" rel="stylesheet">
@@ -17,13 +17,49 @@ body {
     margin: 0; background-color: var(--color-bg); font-family: 'Noto Sans TC', sans-serif;
     overflow: hidden; height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center; user-select: none;
 }
+
+/* --- 新增：頂部選單樣式 --- */
+.top-nav {
+    position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+    background: rgba(0, 0, 0, 0.9);
+    border-bottom: 2px solid var(--color-neon-red);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 30px; z-index: 9999; /* 確保在最上層 */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+.nav-brand {
+    font-family: 'Rubik Glitch', cursive; color: var(--color-neon-yellow);
+    font-size: 1.5rem; letter-spacing: 2px; text-shadow: 2px 2px 0 #000;
+}
+.nav-links { display: flex; gap: 20px; }
+.nav-btn {
+    text-decoration: none; color: #fff; font-family: 'Bangers', cursive;
+    font-size: 1.2rem; padding: 5px 15px; border: 2px solid transparent;
+    transition: all 0.2s; letter-spacing: 1px;
+}
+.nav-btn:hover {
+    color: var(--color-neon-yellow); text-shadow: 0 0 10px var(--color-neon-yellow);
+    transform: scale(1.1);
+}
+.nav-btn.active {
+    color: #000; background: var(--color-neon-red);
+    border-color: var(--color-neon-red); transform: skew(-10deg);
+}
+.nav-btn.dashboard {
+    border: 2px solid var(--color-neon-yellow); color: var(--color-neon-yellow);
+}
+.nav-btn.dashboard:hover {
+    background: var(--color-neon-yellow); color: #000;
+}
+/* ----------------------- */
+
 .slide-deck { width: 100vw; height: 100vh; position: relative; }
 .slide {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     opacity: 0; pointer-events: none; transition: opacity 0.4s ease-in-out;
     background: radial-gradient(circle, #2a2a2a 0%, #000000 100%); z-index: 0; visibility: hidden;
-    padding: 20px;
+    padding: 20px; padding-top: 60px; /* 避開選單 */
 }
 .slide.active { opacity: 1; pointer-events: auto; z-index: 10; visibility: visible; }
 .slide::before {
@@ -43,7 +79,7 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
     border: 4px solid #000; box-shadow: 8px 8px 0 #000; transform: skew(-10deg); display: inline-block;
 }
 .section-header {
-    position: absolute; top: 5vh; left: 5vw; font-size: 4vw; color: #fff;
+    position: absolute; top: 8vh; left: 5vw; font-size: 4vw; color: #fff;
     border-left: 15px solid var(--color-neon-yellow); padding-left: 20px; text-shadow: 4px 4px 0 var(--color-neon-red);
 }
 
@@ -101,7 +137,7 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
 
 /* Timer */
 .timer-display {
-    position: absolute; top: 5vh; right: 5vw;
+    position: absolute; top: 10vh; right: 5vw; /* Adjusted for nav bar */
     font-size: 4vw; font-family: 'Bangers', cursive; font-weight: 900; color: #fff;
     border: 6px solid var(--color-neon-red); background: #000;
     width: 10vw; height: 10vw; display: flex; justify-content: center; align-items: center;
@@ -182,17 +218,26 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
     </style>
 </head>
 <body>
+
+<nav class="top-nav">
+    <div class="nav-brand"><i class="fa-solid fa-dragon"></i> MONSTER LEAGUE</div>
+    <div class="nav-links">
+        <a href="#" class="nav-btn active">DAY 1 覺醒</a>
+        <a href="https://zoewang0422.github.io/mandarin-monster/day2" class="nav-btn">DAY 2 進化</a>
+        <a href="https://zoewang0422.github.io/mandarin-monster/day3" class="nav-btn">DAY 3 決戰</a>
+        <a href="https://zoewang0422.github.io/mandarin-monster/dashbroad" class="nav-btn dashboard"><i class="fa-solid fa-trophy"></i> 積分榜</a>
+    </div>
+</nav>
+
 <div class="nav-hint">DAY 1 - 使用鍵盤 ← → 切換投影片 (F11 全螢幕) | 🔊 按鍵音效已啟用</div>
 
 <div class="slide-deck">
-    <!-- 1. Cover -->
     <div class="slide active">
         <div class="monster-subtitle">CHINESE MONSTER LEAGUE</div>
         <h1 class="monster-title">DAY 1<br>覺醒之戰</h1>
         <div class="warning-sticker"><i class="fa-solid fa-users"></i> 團體積分戰</div>
     </div>
 
-    <!-- 2. Rules -->
     <div class="slide">
         <div style="display: flex; width: 90vw; align-items: center; gap: 40px; flex-wrap: wrap; justify-content: center;">
             <div style="flex: 1.8; min-width: 300px;">
@@ -216,7 +261,6 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
         </div>
     </div>
 
-    <!-- 3. Menu -->
     <div class="slide">
         <h2 class="section-header">本日挑戰項目</h2>
         <div class="grid-2x2" style="margin-top: 10vh;">
@@ -227,7 +271,6 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
         </div>
     </div>
 
-    <!-- 4. Game 1 Rules -->
     <div class="slide">
         <h2 class="section-header">GAME 01: 聲調獵人</h2>
         <div style="display: flex; align-items: center; justify-content: center; width: 80vw;">
@@ -242,12 +285,9 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
         </div>
     </div>
 
-    <!-- 5. Demo Q -->
     <div class="slide"><div class="quiz-badge yellow">EXAMPLE Q</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">題目</h2><div class="demo-container"><div class="demo-box"><div class="demo-char">我</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">是</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">萬</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">興</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">國</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">小</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">的</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">學</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">生</div><div class="demo-tone empty">?</div></div></div></div>
-    <!-- 6. Demo A -->
     <div class="slide"><div class="quiz-badge yellow">EXAMPLE A</div><h2 style="font-size:3vw;color:#FF0;margin-bottom:2vh;">解答</h2><div class="demo-container"><div class="demo-box"><div class="demo-char">我</div><div class="demo-tone">ˇ</div></div><div class="demo-box"><div class="demo-char">是</div><div class="demo-tone">ˋ</div></div><div class="demo-box"><div class="demo-char">萬</div><div class="demo-tone">ˋ</div></div><div class="demo-box"><div class="demo-char">興</div><div class="demo-tone">ˉ</div></div><div class="demo-box"><div class="demo-char">國</div><div class="demo-tone">ˊ</div></div><div class="demo-box"><div class="demo-char">小</div><div class="demo-tone">ˇ</div></div><div class="demo-box"><div class="demo-char">的</div><div class="demo-tone">˙</div></div><div class="demo-box"><div class="demo-char">學</div><div class="demo-tone">ˊ</div></div><div class="demo-box"><div class="demo-char">生</div><div class="demo-tone">ˉ</div></div></div></div>
 
-    <!-- 7~12. Q1-Q6 (Titles) -->
     <div class="slide"><div class="quiz-badge">Q1</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">題目</h2><div class="demo-container"><div class="demo-box"><div class="demo-char">羅</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">密</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">歐</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">與</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">豬</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">過</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">夜</div><div class="demo-tone empty">?</div></div></div></div>
     <div class="slide"><div class="quiz-badge yellow">A1</div><h2 style="font-size:3vw;color:#FF0;margin-bottom:2vh;">解答</h2><div class="demo-container"><div class="demo-box"><div class="demo-char">羅</div><div class="demo-tone">ˊ</div></div><div class="demo-box"><div class="demo-char">密</div><div class="demo-tone">ˋ</div></div><div class="demo-box"><div class="demo-char">歐</div><div class="demo-tone">ˉ</div></div><div class="demo-box"><div class="demo-char">與</div><div class="demo-tone">ˇ</div></div><div class="demo-box"><div class="demo-char">豬</div><div class="demo-tone">ˉ</div></div><div class="demo-box"><div class="demo-char">過</div><div class="demo-tone">ˋ</div></div><div class="demo-box"><div class="demo-char">夜</div><div class="demo-tone">ˋ</div></div></div></div>
     <div class="slide"><div class="quiz-badge">Q2</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">題目</h2><div class="demo-container"><div class="demo-box"><div class="demo-char">你</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">越</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">是</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">這</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">樣</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">，</div><div class="demo-tone transparent"></div></div><div class="demo-box"><div class="demo-char">我</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">悅</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">氏</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">礦</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">泉</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">水</div><div class="demo-tone empty">?</div></div></div></div>
@@ -261,14 +301,12 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
     <div class="slide"><div class="quiz-badge">Q6</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">題目</h2><div class="demo-container"><div class="demo-box"><div class="demo-char">我</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">發</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">現</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">學</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">習</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">的</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">時</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">候</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">把</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">眼</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">睛</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">閉</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">上</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">會</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">很</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">舒</div><div class="demo-tone empty">?</div></div><div class="demo-box"><div class="demo-char">服</div><div class="demo-tone empty">?</div></div></div></div>
     <div class="slide"><div class="quiz-badge yellow">A6</div><h2 style="font-size:3vw;color:#FF0;margin-bottom:2vh;">解答</h2><div class="demo-container"><div class="demo-box"><div class="demo-char">我</div><div class="demo-tone">ˇ</div></div><div class="demo-box"><div class="demo-char">發</div><div class="demo-tone">ˉ</div></div><div class="demo-box"><div class="demo-char">現</div><div class="demo-tone">ˋ</div></div><div class="demo-box"><div class="demo-char">學</div><div class="demo-tone">ˊ</div></div><div class="demo-box"><div class="demo-char">習</div><div class="demo-tone">ˊ</div></div><div class="demo-box"><div class="demo-char">的</div><div class="demo-tone">˙</div></div><div class="demo-box"><div class="demo-char">時</div><div class="demo-tone">ˊ</div></div><div class="demo-box"><div class="demo-char">候</div><div class="demo-tone">ˋ</div></div><div class="demo-box"><div class="demo-char">把</div><div class="demo-tone">ˇ</div></div><div class="demo-box"><div class="demo-char">眼</div><div class="demo-tone">ˇ</div></div><div class="demo-box"><div class="demo-char">睛</div><div class="demo-tone">ˉ</div></div><div class="demo-box"><div class="demo-char">閉</div><div class="demo-tone">ˋ</div></div><div class="demo-box"><div class="demo-char">上</div><div class="demo-tone">ˋ</div></div><div class="demo-box"><div class="demo-char">會</div><div class="demo-tone">ˋ</div></div><div class="demo-box"><div class="demo-char">很</div><div class="demo-tone">ˇ</div></div><div class="demo-box"><div class="demo-char">舒</div><div class="demo-tone">ˉ</div></div><div class="demo-box"><div class="demo-char">服</div><div class="demo-tone">ˊ</div></div></div></div>
 
-    <!-- 13. Level Up (Game 1) -->
     <div class="slide" style="background: var(--color-neon-yellow);">
         <i class="fa-solid fa-trophy" style="font-size: 15vw; color: #000; margin-bottom: 20px; filter: drop-shadow(5px 5px 0 #fff);"></i>
         <h1 class="monster-title" style="color: #000; text-shadow: none; font-size: 12vw;">LEVEL UP<br>挑戰成功</h1>
         <div class="monster-subtitle" style="background: #000; color: #fff; transform: rotate(-2deg);">獵人直覺已覺醒！</div>
     </div>
 
-    <!-- 14. GAME 2 Rules -->
     <div class="slide">
         <h2 class="section-header">GAME 02: 聲調體操</h2>
         <div style="display: flex; width: 90vw; align-items: center; justify-content: center;">
@@ -297,7 +335,6 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
         </div>
     </div>
 
-    <!-- 15~26. GAME 2 Questions (Retained) -->
     <div class="slide"><div class="quiz-badge yellow">EXAMPLE Q</div><div class="vocab-card animate-card-1"><div class="vocab-word">椅子</div></div><div style="margin-top:30px;font-size:1.5vw;color:#aaa;">準備進行拉霸...</div></div>
     <div class="slide"><div class="quiz-badge yellow">EXAMPLE SLOT</div><div class="slot-machine-container"><div class="reel-wrapper"><div class="reel-label">詞首部位 (1)</div><div class="reel reel-1">準備</div></div><div class="reel-wrapper"><div class="reel-label">詞尾部位 (2)</div><div class="reel reel-2">開始</div></div></div><button class="spin-btn" onclick="spinSlots(this)">SPIN! (試玩)</button></div>
     <div class="slide"><h1 class="monster-title" style="font-size:12vw;">ARE YOU<br>READY?</h1><div style="margin-top:50px;cursor:pointer;" onclick="showSlide(currentSlide+1)"><span class="start-btn" style="font-size:3vw;background:#fff;padding:20px 60px;border:5px solid #000;box-shadow:15px 15px 0 var(--color-neon-red);font-weight:900;transform:rotate(-3deg);display:inline-block;">進入挑戰 <i class="fa-solid fa-arrow-right"></i></span></div></div>
@@ -312,14 +349,12 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
     <div class="slide"><div class="quiz-badge">Q5</div><div class="vocab-card animate-card-1"><div class="vocab-word">寶寶</div></div></div>
     <div class="slide"><div class="quiz-badge">Q5 </div><div class="slot-machine-container"><div class="reel-wrapper"><div class="reel-label">寶 (1)</div><div class="reel reel-1">?</div></div><div class="reel-wrapper"><div class="reel-label">寶 (2)</div><div class="reel reel-2">?</div></div></div><button class="spin-btn" onclick="spinSlots(this)">SPIN! (命運)</button></div>
 
-    <!-- 27. Game 2 Encouragement -->
     <div class="slide" style="background: var(--color-neon-yellow);">
         <i class="fa-solid fa-bolt" style="font-size: 15vw; color: #000; margin-bottom: 20px; filter: drop-shadow(5px 5px 0 #fff);"></i>
         <h1 class="monster-title" style="color: #000; text-shadow: none; font-size: 10vw;">體能極限<br>突破</h1>
         <div class="monster-subtitle" style="background: #000; color: #fff; transform: rotate(-2deg);">中文實力正在進化！</div>
     </div>
 
-    <!-- 28. Game 3 Rules -->
     <div class="slide">
         <h2 class="section-header">GAME 03: 節奏風暴</h2>
         <div style="display: flex; width: 90vw; align-items: center; justify-content: center;">
@@ -368,14 +403,12 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
         </div>
     </div>
 
-    <!-- 29. Game 3 Encouragement -->
     <div class="slide" style="background: var(--color-neon-yellow);">
         <i class="fa-solid fa-music" style="font-size: 15vw; color: #000; margin-bottom: 20px; filter: drop-shadow(5px 5px 0 #fff);"></i>
         <h1 class="monster-title" style="color: #000; text-shadow: none; font-size: 10vw;">節奏感<br>爆棚</h1>
         <div class="monster-subtitle" style="background: #000; color: #fff; transform: rotate(-2deg);">聽覺與反應的完美結合！</div>
     </div>
 
-    <!-- 30. Game 4 Rules -->
     <div class="slide">
         <h2 class="section-header">GAME 04: 造詞工廠</h2>
         <div style="display: flex; width: 90vw; align-items: center; justify-content: center;">
@@ -395,33 +428,22 @@ h1, h2, h3 { text-transform: uppercase; margin: 0; }
         </div>
     </div>
 
-    <!-- Game 4: Example (With Hint) -->
     <div class="slide"><div class="quiz-badge yellow">EXAMPLE</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">造詞指令</h2><div class="vocab-card animate-card-1" style="box-shadow: 15px 15px 0 #fff;"><div style="font-size: 2vw; color: #fff; margin-bottom: 10px;">請造出詞彙 (2-3字)</div><div class="vocab-word" style="font-size: 8vw;">ㄎ + ㄌ</div><div style="font-size: 1.5vw; color: #aaa; margin-top: 15px;">例如：可樂、快樂、恐龍...</div></div></div>
-    <!-- Game 4: Q1 -->
     <div class="slide"><div class="quiz-badge">Q1</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">造詞指令</h2><div class="vocab-card animate-card-1" style="box-shadow: 15px 15px 0 #fff;"><div style="font-size: 2vw; color: #fff; margin-bottom: 10px;">請造出詞彙 (2-3字)</div><div class="vocab-word" style="font-size: 8vw;">ㄕ + ㄐ</div></div></div>
-    <!-- Game 4: Q2 -->
     <div class="slide"><div class="quiz-badge">Q2</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">造詞指令</h2><div class="vocab-card animate-card-1" style="box-shadow: 15px 15px 0 #fff;"><div style="font-size: 2vw; color: #fff; margin-bottom: 10px;">請造出詞彙 (2-3字)</div><div class="vocab-word" style="font-size: 8vw;">ㄍ + ㄒ</div></div></div>
-    <!-- Game 4: Q3 -->
     <div class="slide"><div class="quiz-badge">Q3</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">造詞指令</h2><div class="vocab-card animate-card-1" style="box-shadow: 15px 15px 0 #fff;"><div style="font-size: 2vw; color: #fff; margin-bottom: 10px;">請造出詞彙 (2-3字)</div><div class="vocab-word" style="font-size: 8vw;">ㄉ + ㄋ</div></div></div>
-    <!-- Game 4: Q4 -->
     <div class="slide"><div class="quiz-badge">Q4</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">造詞指令</h2><div class="vocab-card animate-card-1" style="box-shadow: 15px 15px 0 #fff;"><div style="font-size: 2vw; color: #fff; margin-bottom: 10px;">請造出詞彙 (2-3字)</div><div class="vocab-word" style="font-size: 8vw;">ㄏ + ㄅ</div></div></div>
-    <!-- Game 4: Q5 -->
     <div class="slide"><div class="quiz-badge">Q5</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">造詞指令</h2><div class="vocab-card animate-card-1" style="box-shadow: 15px 15px 0 #fff;"><div style="font-size: 2vw; color: #fff; margin-bottom: 10px;">請造出詞彙 (2-3字)</div><div class="vocab-word" style="font-size: 8vw;">ㄈ + ㄐ</div></div></div>
-    <!-- Game 4: Q6 -->
     <div class="slide"><div class="quiz-badge">Q6</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">造詞指令</h2><div class="vocab-card animate-card-1" style="box-shadow: 15px 15px 0 #fff;"><div style="font-size: 2vw; color: #fff; margin-bottom: 10px;">請造出詞彙 (2-3字)</div><div class="vocab-word" style="font-size: 8vw;">ㄌ + ㄙ</div></div></div>
-    <!-- Game 4: Q7 -->
     <div class="slide"><div class="quiz-badge">Q7</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">造詞指令</h2><div class="vocab-card animate-card-1" style="box-shadow: 15px 15px 0 #fff;"><div style="font-size: 2vw; color: #fff; margin-bottom: 10px;">請造出詞彙 (2-3字)</div><div class="vocab-word" style="font-size: 8vw;">ㄊ + ㄑ</div></div></div>
-    <!-- Game 4: Q8 -->
     <div class="slide"><div class="quiz-badge">Q8</div><div class="timer-display" data-initial="60">60</div><h2 style="font-size:3vw;color:#fff;margin-bottom:2vh;">造詞指令</h2><div class="vocab-card animate-card-1" style="box-shadow: 15px 15px 0 #fff;"><div style="font-size: 2vw; color: #fff; margin-bottom: 10px;">請造出詞彙 (2-3字)</div><div class="vocab-word" style="font-size: 8vw;">ㄇ + ㄅ</div></div></div>
 
-    <!-- Game 4 Encouragement -->
     <div class="slide" style="background: var(--color-neon-yellow);">
         <i class="fa-solid fa-brain" style="font-size: 15vw; color: #000; margin-bottom: 20px; filter: drop-shadow(5px 5px 0 #fff);"></i>
         <h1 class="monster-title" style="color: #000; text-shadow: none; font-size: 10vw;">詞彙庫<br>擴充</h1>
         <div class="monster-subtitle" style="background: #000; color: #fff; transform: rotate(-2deg);">語言中樞神經已連結！</div>
     </div>
 
-    <!-- 31. End -->
     <div class="slide">
         <h1 class="monster-title" style="font-size: 15vw;">GAME<br>OVER</h1>
         <div style="margin-top: 50px;">
