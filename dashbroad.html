@@ -3,140 +3,299 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>中文怪物 - 全球中文挑戰賽記分板</title>
+<title>中文怪物記分板 (Local Storage 版)</title>
 <style>
-  /* 頁面基礎設定：黑色背景，禁止選取文字以免誤觸 */
   body {
     margin: 0; padding: 0;
     background-color: #000;
     color: #0f0;
     font-family: 'Courier New', Courier, monospace;
     overflow-x: hidden;
-    user-select: none;
-    -webkit-user-select: none;
   }
 
-  /* 背景特效層 */
   #matrix-bg {
-    position: fixed; top: 0; left: 0;
+    position: fixed;
+    top: 0; left: 0;
     width: 100%; height: 100%;
-    z-index: -1;
-    opacity: 0.3; /* 降低背景干擾 */
+    z-index: 0;
+    opacity: 0.3;
+    pointer-events: none;
   }
 
-  /* 標題區 */
+  #main-content {
+    position: relative;
+    z-index: 1;
+    padding-bottom: 50px;
+  }
+
   header {
-    text-align: center; padding: 15px;
-    background: linear-gradient(180deg, rgba(0,20,0,0.95) 0%, rgba(0,0,0,0) 100%);
-    position: sticky; top: 0; z-index: 100;
+    text-align: center; padding: 20px;
+    background: linear-gradient(180deg, rgba(0,20,0,0.9) 0%, rgba(0,0,0,0) 100%);
     border-bottom: 1px solid #0f0;
-    box-shadow: 0 5px 15px rgba(0,255,0,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
   }
-  h1 { margin: 0; text-shadow: 0 0 10px #0f0; letter-spacing: 3px; font-style: italic; }
 
-  /* 20人網格佈局 */
+  h1 { margin: 0; text-shadow: 0 0 10px #0f0; font-size: 1.8rem; }
+
+  .btn-reset {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px dashed #f33;
+    color: #f33;
+    padding: 5px 15px;
+    font-family: inherit;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+  }
+  .btn-reset:hover {
+    background: #f33;
+    color: white;
+  }
+
   .container {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* 電腦版 5欄 */
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
   }
 
-  /* 卡片樣式 */
   .player-card {
     background: rgba(0, 30, 0, 0.8);
     border: 1px solid #0f0;
-    border-radius: 6px;
+    border-radius: 5px;
     padding: 10px;
     text-align: center;
-    box-shadow: 0 0 5px rgba(0,255,0,0.2);
-    display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 0 5px rgba(0,255,0,0.3);
+    transition: transform 0.1s;
+  }
+  .player-card:hover {
+    box-shadow: 0 0 15px rgba(0,255,0,0.5);
   }
 
-  /* 名字可編輯區 */
   .player-name {
     font-size: 1.1rem; color: #fff;
     border-bottom: 1px dashed #060;
     margin-bottom: 5px; cursor: text;
+    padding: 2px;
+    min-height: 1.2em;
+    display: block;
+    transition: background-color 0.2s;
   }
-  .player-name:focus { outline: none; border-bottom: 1px solid #0f0; background: #000; }
+  .player-card:hover .player-name {
+    background: rgba(0, 255, 0, 0.05);
+  }
+  .player-name:focus {
+    background: rgba(0, 255, 0, 0.2);
+    outline: none;
+    border-bottom: 1px solid #0f0;
+  }
 
-  /* 分數大字 */
   .score-display {
-    font-size: 2.2rem; font-weight: 900;
+    font-size: 2rem; font-weight: bold;
     color: #0f0; margin: 5px 0;
-    text-shadow: 0 0 10px rgba(0,255,0,0.5);
   }
 
-  /* 按鈕區 */
-  .controls { display: flex; justify-content: space-between; gap: 5px; }
-  button {
-    flex: 1; border: 1px solid #0f0; background: transparent;
-    color: #0f0; font-size: 1.2rem; font-weight: bold;
-    cursor: pointer; padding: 5px 0;
+  .controls { display: flex; gap: 5px; }
+  
+  button.ctrl-btn {
+    flex: 1; background: #000; border: 1px solid #0f0;
+    color: #0f0; font-size: 1.2rem; cursor: pointer; padding: 5px;
+    transition: all 0.1s;
   }
-  button:active { background: #0f0; color: #000; }
-  .btn-sub { border-color: #f33; color: #f33; }
-  .btn-sub:active { background: #f33; color: #fff; }
+  button.ctrl-btn:active { background: #0f0; color: #000; transform: scale(0.95); }
+  .btn-sub { border-color: #f33 !important; color: #f33 !important; }
+  .btn-sub:active { background: #f33 !important; color: #fff !important; }
 
-  /* 手機/平板響應式調整 */
-  @media (max-width: 1024px) { .container { grid-template-columns: repeat(4, 1fr); } }
-  @media (max-width: 768px) { .container { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 480px) { 
-    .container { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 10px; }
-    h1 { font-size: 1.5rem; }
-    .score-display { font-size: 2rem; }
-  }
+  @media (max-width: 800px) { .container { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
 
 <canvas id="matrix-bg"></canvas>
-<header><h1>中文怪物挑戰賽</h1></header>
-<div class="container" id="scoreboard"></div>
+
+<div id="main-content">
+  <header>
+    <h1>中文怪物挑戰賽 <span style="font-size:0.6em; vertical-align: middle; color: #0f0;">🔊</span></h1>
+    <button class="btn-reset" onclick="resetData()">⚠ 清除紀錄並重置 ⚠</button>
+  </header>
+  
+  <div class="container" id="scoreboard">
+    <h2 style="text-align:center; grid-column:span 5; color:white;">
+      系統載入中...
+    </h2>
+  </div>
+</div>
 
 <script>
-  // 1. 自動產生20個選手
-  const container = document.getElementById('scoreboard');
-  for (let i = 1; i <= 20; i++) {
-    container.innerHTML += `
-      <div class="player-card">
-        <div class="player-name" contenteditable="true">選手 ${i}</div>
-        <div class="score-display" id="score-${i}">0</div>
-        <div class="controls">
-          <button class="btn-sub" onclick="update(${i}, -1)">-</button>
-          <button onclick="update(${i}, 1)">+</button>
-        </div>
-      </div>
-    `;
-  }
+  const STORAGE_KEY = 'monster_scoreboard_v1';
+  const TOTAL_PLAYERS = 20;
 
-  // 2. 加減分邏輯
-  function update(id, val) {
-    const el = document.getElementById(`score-${id}`);
-    let s = parseInt(el.innerText) + val;
-    el.innerText = s;
-    // 閃爍特效
-    el.style.color = '#fff';
-    setTimeout(() => el.style.color = '#0f0', 150);
-  }
+  window.onload = function() {
+    renderScoreboard();
+    startMatrix();
+    
+    const board = document.getElementById('scoreboard');
 
-  // 3. Matrix 代碼雨動畫
-  const cvs = document.getElementById('matrix-bg'), ctx = cvs.getContext('2d');
-  function resize() { cvs.width=window.innerWidth; cvs.height=window.innerHeight; }
-  window.onresize = resize; resize();
-  const chars = '01XYZE'.split(''), drops = Array(Math.floor(cvs.width/14)).fill(1);
-  setInterval(() => {
-    ctx.fillStyle = 'rgba(0,0,0,0.1)'; ctx.fillRect(0,0,cvs.width,cvs.height);
-    ctx.fillStyle = '#0F0'; ctx.font = '14px monospace';
-    drops.forEach((y, i) => {
-      ctx.fillText(chars[Math.floor(Math.random()*6)], i*14, y*14);
-      if (y*14 > cvs.height && Math.random()>0.98) drops[i]=0;
-      drops[i]++;
+    board.addEventListener('input', function(e) {
+      if (e.target.classList.contains('player-name')) {
+        saveData();
+      }
     });
-  }, 50);
+
+    board.addEventListener('keydown', function(e) {
+      if (e.target.classList.contains('player-name')) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.target.blur();
+        }
+      }
+    });
+  };
+
+  function renderScoreboard() {
+    const box = document.getElementById('scoreboard');
+    
+    let savedData = localStorage.getItem(STORAGE_KEY);
+    let players = [];
+
+    if (savedData) {
+      players = JSON.parse(savedData);
+    } else {
+      for (let i = 1; i <= TOTAL_PLAYERS; i++) {
+        players.push({ id: i, name: `選手 ${i}`, score: 0 });
+      }
+    }
+
+    if (players.length !== TOTAL_PLAYERS) {
+       players = [];
+       for (let i = 1; i <= TOTAL_PLAYERS; i++) {
+        players.push({ id: i, name: `選手 ${i}`, score: 0 });
+      }
+    }
+
+    let html = '';
+    players.forEach((player, index) => {
+      html += `
+        <div class="player-card" id="card-${index}">
+          <div class="player-name" contenteditable="true" spellcheck="false" title="點擊編輯名字">${player.name}</div>
+          <div class="score-display" id="score-display-${index}">${player.score}</div>
+          <div class="controls">
+            <button class="ctrl-btn btn-sub" onclick="updateScore(${index}, -1)">-</button>
+            <button class="ctrl-btn" onclick="updateScore(${index}, 1)">+</button>
+          </div>
+        </div>
+      `;
+    });
+
+    box.innerHTML = html;
+  }
+
+  window.updateScore = function(index, val) {
+    const scoreEl = document.getElementById(`score-display-${index}`);
+    if (scoreEl) {
+      let current = parseInt(scoreEl.innerText);
+      let newScore = current + val;
+      scoreEl.innerText = newScore;
+      
+      scoreEl.style.color = '#fff';
+      setTimeout(() => { scoreEl.style.color = '#0f0'; }, 100);
+
+      saveData();
+    }
+  };
+
+  function saveData() {
+    const players = [];
+    
+    for (let i = 0; i < TOTAL_PLAYERS; i++) {
+      const card = document.getElementById(`card-${i}`);
+      if (card) {
+        const name = card.querySelector('.player-name').innerText; 
+        const score = parseInt(card.querySelector('.score-display').innerText); 
+        players.push({ id: i + 1, name: name, score: score });
+      }
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+  }
+
+  window.resetData = function() {
+    if (confirm('確定要清除所有姓名和分數紀錄嗎？')) {
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+  };
+
+  function startMatrix() {
+    const cvs = document.getElementById('matrix-bg');
+    if (!cvs) return;
+    const ctx = cvs.getContext('2d');
+    
+    function resize() { 
+      cvs.width = window.innerWidth; 
+      cvs.height = window.innerHeight; 
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const columns = Math.floor(cvs.width / 14);
+    const drops = new Array(columns).fill(1);
+    const chars = '01XYZE';
+
+    setInterval(function() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.fillRect(0, 0, cvs.width, cvs.height);
+      
+      ctx.fillStyle = '#0F0';
+      ctx.font = '14px monospace';
+      
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(text, i * 14, drops[i] * 14);
+        
+        if (drops[i] * 14 > cvs.height && Math.random() > 0.98) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }, 50);
+  }
+
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function playClickSound() {
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.15);
+
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.15);
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('button') || e.target.classList.contains('player-name')) {
+        playClickSound();
+    }
+  });
+
 </script>
+
 </body>
 </html>
